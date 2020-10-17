@@ -9,6 +9,8 @@
 Here is an example to run server.
 
 ```bash
+cd <this repo>
+npm ci
 npm start -- --jwks-uri https://nwtgck.us.auth0.com/.well-known/jwks.json --jwt-issuer=https://nwtgck.us.auth0.com/ --http-port=8080
 ```
 

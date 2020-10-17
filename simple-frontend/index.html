@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Piping Server with Auth0</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+      h3 {
+          margin-top: 2em;
+          margin-bottom: 0.5em;
+      }
+  </style>
+  <script src="https://cdn.auth0.com/js/auth0-spa-js/1.9/auth0-spa-js.production.js"></script>
+</head>
+<body>
+<h1>Piping Server with Auth0</h1>
+
+Piping Server: <input id="server_url" placeholder="Piping Server" value="http://localhost:8080"><br>
+Path: <input id="secret_path" placeholder="Secret path" size="50"><br>
+<hr>
+<h2>Send</h2>
+<input type="checkbox" id="text_mode" onchange="toggleInputMode()">: <b>Text mode</b><br><br>
+<input type="file" id="file_input">
+<textarea id="text_input" placeholder="Input text" cols="30" rows="10"></textarea><br>
+<br>
+<button onclick="send()">Send</button><br>
+<progress id="progress_bar" value="0" max="100" style="display: none"></progress><br>
+<div id="message"></div>
+<hr>
+<h2>Get</h2>
+<button onclick="get()">Get</button><br>
+<script>
+  let auth0Promise = undefined;
+  (async () => {
+    auth0Promise = createAuth0Client({
+      // NOTE: Use your app setting
+      domain: "nwtgck.us.auth0.com",
+      client_id: "bsm7sR6J6RnXJZJAklDceLLf9zz0bqiX",
+      cacheLocation: 'localstorage',
+    });
+    const auth0 = await auth0Promise;
+
+    const params = new URL(window.location.href).searchParams;
+    // After redirection
+    if (params.has("code") && params.has("state")) {
+      // Process the login state
+      await auth0.handleRedirectCallback();
+      // Clean query parameters
+      window.history.replaceState({}, '', "/");
+    }
+
+    // If not authenticated
+    if (!await auth0.isAuthenticated()) {
+      // Log in
+      await auth0.loginWithRedirect({
+        redirect_uri: window.location.origin
+      });
+    }
+  })();
+
+  // Toggle input mode: file or text
+  const toggleInputMode = (() => {
+    let activeInput      = window.file_input;
+    let deactivatedInput = window.text_input;
+    // Set inputs' functionality and visibility
+    function setInputs() {
+      activeInput.removeAttribute("disabled");
+      activeInput.style.removeProperty("display");
+      deactivatedInput.setAttribute("disabled", "");
+      deactivatedInput.style.display = "none";
+    }
+    setInputs();
+    // Body of toggleInputMode
+    function toggle() {
+      // Swap inputs
+      const tmpInput     = activeInput;
+      activeInput      = deactivatedInput;
+      deactivatedInput = tmpInput;
+      setInputs();
+    }
+    return toggle;
+  })();
+  function setMessage(msg) {
+    window.message.innerText = msg;
+  }
+  function setProgress(loaded, total) {
+    const progress = (total === 0) ? 0 : loaded / total * 100;
+    window.progress_bar.value = progress;
+    setMessage(`${loaded}B (${progress.toFixed(2)}%)`);
+  }
+  function hideProgress() {
+    window.progress_bar.style.display = "none";
+  }
+  async function send() {
+    const auth0 = await auth0Promise;
+    // Select body (text or file)
+    const body = window.text_mode.checked ? window.text_input.value : window.file_input.files[0];
+    // Send
+    const xhr = new XMLHttpRequest();
+    xhr.withCredentials = true;
+    const url = `${window.server_url.value.replace(/\/$/, '')}/${window.secret_path.value}`;
+    xhr.open("POST", url, true);
+    const idToken = (await auth0.getIdTokenClaims()).__raw;
+    xhr.setRequestHeader('Authorization', `Bearer ${idToken}`);
+    // If file has no type
+    if (!window.text_mode.checked && body.type === "") {
+      xhr.setRequestHeader("Content-Type", "application/octet-stream");
+    }
+    // Update progress bar
+    xhr.upload.onprogress = ({loaded, total}) => {
+      setProgress(loaded, total);
+    };
+    xhr.upload.onload = ({loaded, total}) => {
+      // Send finished
+      if (xhr.status === 200) {
+        setProgress(loaded, total);
+      }
+    };
+    xhr.onload = () => {
+      // Status code error
+      if (xhr.status !== 200) {
+        setMessage(xhr.responseText);
+        hideProgress();
+      }
+    };
+    xhr.onerror = () => {
+      setMessage("Upload error");
+      hideProgress();
+    };
+    xhr.send(body);
+    // Show progress bar
+    window.progress_bar.style.removeProperty("display");
+  }
+
+  async function get() {
+    const auth0 = await auth0Promise;
+    const url = `${window.server_url.value.replace(/\/$/, '')}/${window.secret_path.value}`;
+    const idToken = (await auth0.getIdTokenClaims()).__raw;
+    const res = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${idToken}`
+      },
+    });
+    const blob = await res.blob();
+    const aTag = document.createElement('a');
+    aTag.href = URL.createObjectURL(blob);
+    aTag.download = '';
+    aTag.click();
+  }
+</script>
+</body>
+</html>

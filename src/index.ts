@@ -57,7 +57,10 @@ const server = http.createServer((req, res) => {
     if(err) {
       if (err instanceof jwt.UnauthorizedError) {
         logger.info("UnauthorizedError: ", err.message);
-        res.writeHead(err.status);
+        res.writeHead(err.status, {
+          "Access-Control-Allow-Origin": req.headers.origin ?? '*',
+          "Access-Control-Allow-Credentials": "true",
+        });
         res.end(`${err.message}\n`);
         return;
       }
@@ -66,6 +69,28 @@ const server = http.createServer((req, res) => {
       res.end("Unexpected authorization error\n");
       return;
     }
+    if (req.method === 'OPTIONS') {
+      res.writeHead(200, {
+        "Access-Control-Allow-Origin": req.headers.origin ?? '*',
+        "Access-Control-Allow-Methods": "GET, HEAD, POST, PUT, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Content-Disposition, Authorization",
+        "Access-Control-Allow-Credentials": "true",
+        "Access-Control-Max-Age": 86400,
+        "Content-Length": 0
+      });
+      res.end();
+      return;
+    }
+    const originalWriteHead = res.writeHead.bind(res);
+    // FIXME: Use better way
+    (res as any).writeHead = (statusCode: number, headers?: http.OutgoingHttpHeaders): http.ServerResponse => {
+      const newHeaders = {
+        ...headers,
+        "Access-Control-Allow-Origin": req.headers.origin,
+        "Access-Control-Allow-Credentials": "true",
+      };
+      return originalWriteHead(statusCode, newHeaders);
+    };
     httpHandler(req, res);
   } as any);
 });

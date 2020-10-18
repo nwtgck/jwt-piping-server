@@ -35,3 +35,17 @@ auth0Promise = createAuth0Client({
   cacheLocation: 'localstorage',
 });
 ```
+
+## Server help
+
+```
+Options:
+  --help          Show help                                            [boolean]
+  --version       Show version number                                  [boolean]
+  --http-port     Port of HTTP server                            [default: 8080]
+  --jwks-uri      JWKs URI (e.g.
+                  https://example.us.auth0.com/.well-known/jwks.json)
+                                                             [string] [required]
+  --jwt-issuer    JWT issuer (e.g. https://example.us.auth0.com/)       [string]
+  --jwt-audience  JWT audience                                          [string]
+```

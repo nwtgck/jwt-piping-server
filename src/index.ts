@@ -1,5 +1,5 @@
-import * as jwt from 'express-jwt';
 import * as jwksRsa from 'jwks-rsa';
+import * as jsonwebtoken from 'jsonwebtoken';
 import * as http from 'http';
 import * as yargs from "yargs";
 import * as log4js from "log4js";
@@ -39,60 +39,95 @@ logger.level = "info";
 // Create a piping server
 const pipingServer = new piping.Server({ logger });
 
-const checkJwt = jwt({
-  secret: jwksRsa.expressJwtSecret({
-    cache: true,
-    rateLimit: true,
-    jwksRequestsPerMinute: 5,
-    jwksUri: args['jwks-uri'],
-  }),
+type JwksClientConstructor = new (options: jwksRsa.ClientOptions) => jwksRsa.JwksClient;
+const jwksClient = new (jwksRsa as any as JwksClientConstructor)({
+  cache: true,
+  rateLimit: true,
+  jwksRequestsPerMinute: 5,
+  jwksUri: args['jwks-uri'],
+});
+
+const verifyOptions: jsonwebtoken.VerifyOptions = {
   audience: args['jwt-audience'],
   issuer: args['jwt-issuer'],
   algorithms: ['RS256']
-});
+};
+
+function respondError(req: http.IncomingMessage, res: http.ServerResponse, message: string) {
+  res.writeHead(401, {
+    "Access-Control-Allow-Origin": req.headers.origin ?? '*',
+    "Access-Control-Allow-Credentials": "true",
+    "Content-Type": "text/plain",
+  });
+  res.end(message);
+}
 
 const httpHandler = pipingServer.generateHandler(false);
-const server = http.createServer((req, res) => {
-  checkJwt(req as any, res as any, function (err?: any) {
-    if(err) {
-      if (err instanceof jwt.UnauthorizedError) {
-        logger.info("UnauthorizedError: ", err.message);
-        res.writeHead(err.status, {
-          "Access-Control-Allow-Origin": req.headers.origin ?? '*',
-          "Access-Control-Allow-Credentials": "true",
-        });
-        res.end(`${err.message}\n`);
-        return;
-      }
-      logger.error("Unexpected authorization error", err);
-      res.writeHead(500);
-      res.end("Unexpected authorization error\n");
-      return;
-    }
-    if (req.method === 'OPTIONS') {
-      res.writeHead(200, {
-        "Access-Control-Allow-Origin": req.headers.origin ?? '*',
-        "Access-Control-Allow-Methods": "GET, HEAD, POST, PUT, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Content-Disposition, Authorization",
-        "Access-Control-Allow-Credentials": "true",
-        "Access-Control-Max-Age": 86400,
-        "Content-Length": 0
-      });
-      res.end();
-      return;
-    }
-    const originalWriteHead = res.writeHead.bind(res);
-    // FIXME: Use better way
-    (res as any).writeHead = (statusCode: number, headers?: http.OutgoingHttpHeaders): http.ServerResponse => {
-      const newHeaders = {
-        ...headers,
-        "Access-Control-Allow-Origin": req.headers.origin,
-        "Access-Control-Allow-Credentials": "true",
-      };
-      return originalWriteHead(statusCode, newHeaders);
+const server = http.createServer(async (req, res) => {
+  // Support preflight request
+  if (req.method === 'OPTIONS') {
+    res.writeHead(200, {
+      "Access-Control-Allow-Origin": req.headers.origin ?? '*',
+      "Access-Control-Allow-Methods": "GET, HEAD, POST, PUT, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Content-Disposition, Authorization",
+      "Access-Control-Allow-Credentials": "true",
+      "Access-Control-Max-Age": 86400,
+      "Content-Length": 0
+    });
+    res.end();
+    return;
+  }
+
+  if (req.headers.authorization === undefined) {
+    respondError(req, res, `"Authorization" header is not found\n`);
+    return;
+  }
+
+  const matched = req.headers.authorization.match(/^Bearer (.*)$/i);
+  if (matched === null) {
+    respondError(req, res, `Invalid "Authorization" scheme\n`);
+    return;
+  }
+  const jwt: string = matched[1];
+
+  let decodedToken: { header: any, payload: any, signature: string };
+  try {
+    decodedToken = jsonwebtoken.decode(jwt, {complete: true}) as any;
+  } catch (err) {
+    respondError(req, res, "Invalid token\n");
+    return;
+  }
+
+  let signingKey: jwksRsa.SigningKey;
+  try {
+    // NOTE: Only RS256 is supported.
+    // (from: https://github.com/auth0/node-jwks-rsa/blob/bf5f7cc9203e20b8e1471c90d4b103cbd8e56660/src/integrations/express.js#L25)
+    signingKey = await jwksClient.getSigningKeyAsync(decodedToken.header.kid);
+  } catch (err) {
+    respondError(req, res, "Failed to sign key\n");
+    return;
+  }
+  const publicKey = "publicKey" in signingKey ? signingKey.publicKey : signingKey.rsaPublicKey;
+
+  let verified: object | string;
+  try {
+    verified = jsonwebtoken.verify(jwt, publicKey, verifyOptions);
+  } catch (err) {
+    respondError(req, res, "Failed to verify token\n");
+    return;
+  }
+
+  const originalWriteHead = res.writeHead.bind(res);
+  // FIXME: Use better way
+  (res as any).writeHead = (statusCode: number, headers?: http.OutgoingHttpHeaders): http.ServerResponse => {
+    const newHeaders = {
+      ...headers,
+      "Access-Control-Allow-Origin": req.headers.origin,
+      "Access-Control-Allow-Credentials": "true",
     };
-    httpHandler(req, res);
-  } as any);
+    return originalWriteHead(statusCode, newHeaders);
+  };
+  httpHandler(req, res);
 });
 
 server.listen(httpPort, () => {

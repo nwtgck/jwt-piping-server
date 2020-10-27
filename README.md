@@ -6,12 +6,18 @@
 
 ## Usage
 
-Here is an example to run server.
+Here are examples to run server.
 
 ```bash
 cd <this repo>
 npm ci
 npm start -- --jwks-uri https://nwtgck.us.auth0.com/.well-known/jwks.json --jwt-issuer=https://nwtgck.us.auth0.com/ --http-port=8080
+```
+
+OR
+
+```bash
+docker run -p 8080:8080 nwtgck/auth0-piping-server --jwks-uri https://nwtgck.us.auth0.com/.well-known/jwks.json --jwt-issuer=https://nwtgck.us.auth0.com/ --http-port=8080
 ```
 
 Here is how to run simple web client.

@@ -1,7 +1,7 @@
 {
-  "name": "auth0-piping-server",
+  "name": "jwt-piping-server",
   "version": "0.1.0-SNAPSHOT",
-  "description": "auth0-piping-server",
+  "description": "Piping Server with JWT authentication",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "scripts": {
@@ -11,11 +11,13 @@
     "test": "mocha --require ts-node/register test/**/*.ts"
   },
   "keywords": [
-    "TypeScript"
+    "Piping Server",
+    "JWT authentication",
+    "JWT"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/nwtgck/auth0-piping-server"
+    "url": "https://github.com/nwtgck/jwt-piping-server"
   },
   "author": "Ryo Ota <nwtgck@nwtgck.org> (https://github.com/nwtgck)",
   "license": "MIT",

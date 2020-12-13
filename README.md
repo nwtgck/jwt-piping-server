@@ -1,7 +1,7 @@
-# auth0-piping-server
-[Piping Server](https://github.com/nwtgck/piping-server) with [Auth0](auth0.com/)  
-(I will rename this repository when I find this repository can be used for more general authentication than Auth0)
+# jwt-piping-server
+[Piping Server](https://github.com/nwtgck/piping-server) with JWT authentication such as [Auth0](auth0.com/)  
 
+The demo below uses Auth0.  
 ![Piping Server with Auth0](demo_assets/auth0-simple-client.gif)  
 
 ## Usage
@@ -17,7 +17,7 @@ npm start -- --jwks-uri https://nwtgck.us.auth0.com/.well-known/jwks.json --jwt-
 OR
 
 ```bash
-docker run -p 8080:8080 nwtgck/auth0-piping-server --jwks-uri https://nwtgck.us.auth0.com/.well-known/jwks.json --jwt-issuer=https://nwtgck.us.auth0.com/ --http-port=8080
+docker run -p 8080:8080 nwtgck/jwt-piping-server --jwks-uri https://nwtgck.us.auth0.com/.well-known/jwks.json --jwt-issuer=https://nwtgck.us.auth0.com/ --http-port=8080
 ```
 
 Here is how to run simple web client.

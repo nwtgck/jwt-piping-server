@@ -24,7 +24,7 @@
   "devDependencies": {
     "@types/jsonwebtoken": "^8.5.0",
     "@types/mocha": "^8.2.2",
-    "@types/power-assert": "^1.5.3",
+    "@types/power-assert": "^1.5.4",
     "@types/yargs": "^15.0.9",
     "mocha": "^8.2.0",
     "power-assert": "^1.6.1",

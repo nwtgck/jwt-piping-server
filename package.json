@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "jsonwebtoken": "^8.5.1",
-    "jwks-rsa": "^1.11.0",
+    "jwks-rsa": "^2.0.4",
     "log4js": "^6.3.0",
     "piping-server": "^1.2.0",
     "yargs": "^16.1.0"

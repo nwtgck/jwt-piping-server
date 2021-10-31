@@ -4,6 +4,7 @@ import * as http from 'http';
 import * as yargs from "yargs";
 import * as log4js from "log4js";
 import * as piping from "piping-server";
+import { config as environmentConfig } from "dotenv";
 
 // Create option parser
 const parser = yargs
@@ -15,7 +16,6 @@ const parser = yargs
   .option("jwks-uri", {
     describe: "JWKs URI (e.g. https://example.us.auth0.com/.well-known/jwks.json)",
     type: "string",
-    demandOption: true,
   })
   // NOTE: This option name might be renamed
   .option("jwt-issuer", {
@@ -28,9 +28,16 @@ const parser = yargs
     type: "string"
   });
 
+  
 // Parse arguments
 const args = parser.parse(process.argv);
-const httpPort: number = args["http-port"];
+environmentConfig();
+const httpPort: number = process.env.HTTP_PORT ? parseInt(process.env.HTTP_PORT, 10) : args["http-port"];
+if (!args['jwks-uri'] && !process.env.JWKS_URI) {
+  console.error("Missing option 'jwks-uri'. Please either set the option in the commandline or as environment variable.");
+  process.exit(-1);
+}
+const jwksUri: string = args['jwks-uri'] ?? process.env.JWKS_URI ?? '';
 
 // Create a logger
 const logger = log4js.getLogger();
@@ -44,12 +51,12 @@ const jwksClient = new (jwksRsa as any as JwksClientConstructor)({
   cache: true,
   rateLimit: true,
   jwksRequestsPerMinute: 5,
-  jwksUri: args['jwks-uri'],
+  jwksUri
 });
 
 const verifyOptions: jsonwebtoken.VerifyOptions = {
-  audience: args['jwt-audience'],
-  issuer: args['jwt-issuer'],
+  audience: args['jwt-audience'] ?? process.env.JWT_AUDIENCE,
+  issuer: args['jwt-issuer'] ?? process.env.JWKS_ISSUER,
   algorithms: ['RS256']
 };
 

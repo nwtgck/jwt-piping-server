@@ -55,3 +55,10 @@ Options:
   --jwt-issuer    JWT issuer (e.g. https://example.us.auth0.com/)       [string]
   --jwt-audience  JWT audience                                          [string]
 ```
+
+## Environment Variables
+These environment variables can also be specified in a `.env` file.
+
+- `JWKS_URI`      : JWKs URI
+- `JWKS_ISSUER`   : JWT issuer
+- `JWT_AUDIENCE`  : JWT audience

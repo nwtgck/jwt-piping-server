@@ -61,6 +61,21 @@ describe('custom piping-server handler', () => {
     assert.strictEqual(res.statusCode, 401);
   });
 
+  it("should support Preflight request with origin", async () => {
+    const res = await thenRequest("OPTIONS", `${pipingUrl}/mypath`, {
+      headers: {
+        Origin: pipingUrl,
+      }
+    });
+    assert.strictEqual(res.statusCode, 200);
+    const headers = res.headers;
+    assert.strictEqual(headers["access-control-allow-origin"], pipingUrl);
+    assert.strictEqual(headers["access-control-allow-methods"], "GET, HEAD, POST, PUT, OPTIONS");
+    assert.strictEqual(headers["access-control-allow-headers"], "Content-Type, Content-Disposition, Authorization, X-Piping");
+    assert.strictEqual(headers["access-control-max-age"], "86400");
+    assert.strictEqual(headers["content-length"], "0");
+  });
+
   it("should reject to transfer data with expired token", async () => {
     const key = await jose.JWK.createKeyStore().generate("RSA", 2048);
     const privateKeyPem = key.toPEM(true);

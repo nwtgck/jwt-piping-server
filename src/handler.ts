@@ -16,7 +16,7 @@ export function generateHandler({pipingServer, useHttps, jwtVerifyOptions, jwksC
       res.writeHead(200, {
         "Access-Control-Allow-Origin": req.headers.origin ?? '*',
         "Access-Control-Allow-Methods": "GET, HEAD, POST, PUT, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Content-Disposition, Authorization",
+        "Access-Control-Allow-Headers": "Content-Type, Content-Disposition, Authorization, X-Piping",
         "Access-Control-Allow-Credentials": "true",
         "Access-Control-Max-Age": 86400,
         "Content-Length": 0
@@ -71,6 +71,7 @@ export function generateHandler({pipingServer, useHttps, jwtVerifyOptions, jwksC
         ...headers,
         "Access-Control-Allow-Origin": req.headers.origin ?? "*",
         "Access-Control-Allow-Credentials": "true",
+        "Access-Control-Allow-Headers": "Content-Type, Content-Disposition, X-Piping",
       };
       return originalWriteHead(statusCode, newHeaders);
     };

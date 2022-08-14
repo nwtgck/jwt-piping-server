@@ -3,12 +3,13 @@ import * as jwksRsa from "jwks-rsa";
 import * as http from "http";
 import * as piping from "piping-server";
 
-export function generateHandler({pipingServer, jwtVerifyOptions, jwksClient}: {
+export function generateHandler({pipingServer, useHttps, jwtVerifyOptions, jwksClient}: {
   pipingServer: piping.Server,
+  useHttps: boolean,
   jwtVerifyOptions: jsonwebtoken.VerifyOptions,
   jwksClient: jwksRsa.JwksClient,
 }): (req: http.IncomingMessage, res: http.ServerResponse) => void {
-  const httpHandler = pipingServer.generateHandler(false);
+  const httpHandler = pipingServer.generateHandler(useHttps);
   return async (req, res) => {
     // Support preflight request
     if (req.method === 'OPTIONS') {

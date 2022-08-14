@@ -29,6 +29,7 @@ describe('custom piping-server handler', () => {
     // Create a Piping server
     pipingServer = http.createServer(generateHandler({
       pipingServer: new piping.Server(),
+      useHttps: false,
       jwtVerifyOptions: {
         algorithms: ['RS256'],
       },

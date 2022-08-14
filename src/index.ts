@@ -56,6 +56,7 @@ const jwtVerifyOptions: jsonwebtoken.VerifyOptions = {
 
 const server = http.createServer(generateHandler({
   pipingServer,
+  useHttps: false,
   jwtVerifyOptions,
   jwksClient,
 }));

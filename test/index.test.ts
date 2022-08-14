@@ -119,18 +119,25 @@ describe('custom piping-server handler', () => {
       });
     const postResPromise = thenRequest("POST", `${pipingUrl}/mypath`, {
       headers: {
+        Origin: pipingUrl,
         Authorization: `Bearer ${jwt}`,
       },
       body: "my content",
     });
-    await new Promise(resolve => setTimeout(resolve, 100));
     const getRes = await thenRequest("GET", `${pipingUrl}/mypath`, {
       headers: {
+        Origin: pipingUrl,
         Authorization: `Bearer ${jwt}`,
       },
     });
+    const postRes = await postResPromise;
+    assert.strictEqual(postRes.statusCode, 200);
+    assert.strictEqual(postRes.headers["access-control-allow-origin"], pipingUrl);
+    assert.strictEqual(postRes.headers["access-control-allow-credentials"], "true");
+
     assert.strictEqual(getRes.statusCode, 200);
     assert.strictEqual(getRes.getBody("UTF-8"), "my content");
-    assert.strictEqual((await postResPromise).statusCode, 200);
+    assert.strictEqual(getRes.headers["access-control-allow-origin"], pipingUrl);
+    assert.strictEqual(getRes.headers["access-control-allow-credentials"], "true");
   });
 });

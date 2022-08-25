@@ -22,7 +22,7 @@
   "author": "Ryo Ota <nwtgck@nwtgck.org> (https://github.com/nwtgck)",
   "license": "MIT",
   "devDependencies": {
-    "@types/jsonwebtoken": "^8.5.0",
+    "@types/jsonwebtoken": "^8.5.9",
     "@types/mocha": "^8.2.2",
     "@types/node-jose": "^1.1.10",
     "@types/power-assert": "^1.5.3",

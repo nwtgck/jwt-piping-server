@@ -40,8 +40,7 @@ logger.level = "info";
 // Create a piping server
 const pipingServer = new piping.Server({ logger });
 
-type JwksClientConstructor = new (options: jwksRsa.ClientOptions) => jwksRsa.JwksClient;
-const jwksClient = new (jwksRsa as any as JwksClientConstructor)({
+const jwksClient = new jwksRsa.JwksClient({
   cache: true,
   rateLimit: true,
   jwksRequestsPerMinute: 5,

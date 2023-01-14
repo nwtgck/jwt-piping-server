@@ -49,7 +49,7 @@ export function generateHandler({pipingServer, useHttps, jwtVerifyOptions, jwksC
     try {
       // NOTE: Only RS256 is supported.
       // (from: https://github.com/auth0/node-jwks-rsa/blob/bf5f7cc9203e20b8e1471c90d4b103cbd8e56660/src/integrations/express.js#L25)
-      signingKey = await jwksClient.getSigningKeyAsync(decodedToken.header.kid);
+      signingKey = await jwksClient.getSigningKey(decodedToken.header.kid);
     } catch (err) {
       respondError(req, res, "Failed to sign key\n");
       return;

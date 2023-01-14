@@ -9,11 +9,10 @@ import {generateHandler} from "../src/handler";
 import * as piping from "piping-server";
 import thenRequest from "then-request";
 
-type JwksClientConstructor = new (options: jwksRsa.ClientOptions) => jwksRsa.JwksClient;
 
 describe('custom piping-server handler', () => {
   const jswksBasePath = 'https://my-jwk-server';
-  const jwksClient = new (jwksRsa as any as JwksClientConstructor)({
+  const jwksClient = new jwksRsa.JwksClient({
     cache: false,
     jwksUri: `${jswksBasePath}/jwks.json`,
   });

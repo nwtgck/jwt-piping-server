@@ -23,9 +23,8 @@ docker run -p 8080:8080 nwtgck/jwt-piping-server --jwks-uri https://nwtgck.us.au
 Here is how to run simple web client.
 
 ```bash
-cd simple-frontend/
 # Static hosting
-python3 -m http.server 3000
+(cd simple-frontend/ && npx http-server -p 3000)
 ```
 
 Open http://localhost:3000/ on your Web browser.

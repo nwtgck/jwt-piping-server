@@ -26,7 +26,7 @@
     "@types/mocha": "^10.0.1",
     "@types/node-jose": "^1.1.10",
     "@types/power-assert": "^1.5.3",
-    "@types/yargs": "^17.0.19",
+    "@types/yargs": "^17.0.20",
     "get-port": "^5.1.1",
     "mocha": "^10.2.0",
     "nock": "^13.3.0",

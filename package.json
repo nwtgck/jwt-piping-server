@@ -30,7 +30,7 @@
     "get-port": "^5.1.1",
     "mocha": "^10.2.0",
     "nock": "^13.3.0",
-    "node-jose": "^2.1.1",
+    "node-jose": "^2.2.0",
     "power-assert": "^1.6.1",
     "then-request": "^6.0.2",
     "ts-node": "^10.9.1",
